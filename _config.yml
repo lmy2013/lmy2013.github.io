@@ -1,10 +1,10 @@
-title: keep a low profile! # name of the site
+title: MercyL1n's Blog # name of the site
 author: MercyL1n # name of site's author
 email: 18506000485@163.com # email of site's author
 url: https://MercyL1n.github.io # root address of the site
 baseurl: "" # subpath of the site, e.g. "/blog" (leave it blank "" if you're site shouldn't use a subpath)
 description: > # description of the site (multiple lines allowed)
-  A (nearly) no-CSS, fast, minimalist Jekyll theme.
+  Way to Web security.
 
 permalink: /:slug.html
 
