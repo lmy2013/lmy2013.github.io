@@ -73,6 +73,10 @@ Now a table:
 
 ![theme logo](https://raw.githubusercontent.com/riggraz/no-style-please/master/logo.png){:.ioda}
 
+![3bd2a9f578b1f280fd578167cdaae267](E:\myblog\MercyL1n.github.io\_posts\3bd2a9f578b1f280fd578167cdaae267.jpeg)
+
+
+
 Logo of *no style, please!* theme[^4]
 
 ---
