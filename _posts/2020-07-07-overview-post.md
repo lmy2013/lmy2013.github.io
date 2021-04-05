@@ -73,9 +73,7 @@ Now a table:
 
 ![theme logo](https://raw.githubusercontent.com/riggraz/no-style-please/master/logo.png){:.ioda}
 
-![3bd2a9f578b1f280fd578167cdaae267](E:\myblog\MercyL1n.github.io\_posts\3bd2a9f578b1f280fd578167cdaae267.jpeg)
-
-
+![0b29d44ccc7ca0076dcb9bf4c9816a44](https://raw.githubusercontent.com/MercyL1n/blog-picture/main/img%5C0b29d44ccc7ca0076dcb9bf4c9816a44.jpg)
 
 Logo of *no style, please!* theme[^4]
 
