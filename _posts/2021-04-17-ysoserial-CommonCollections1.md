@@ -188,5 +188,6 @@ final Transformer[] transformers = new Transformer[] {
 
 # 参考
 
-[1] Java安全漫谈 - .反序列化篇(3)~(5)
+[1] [Java安全漫谈-反序列化篇(3)~(5)](https://govuln.com/docs/java-things/)
+
 [2] [Java反序列化（三）Common Collection 1分析](https://blog.csdn.net/qq_41918771/article/details/115242949)
