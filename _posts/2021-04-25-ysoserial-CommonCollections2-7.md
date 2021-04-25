@@ -1,5 +1,5 @@
 ---
-title: ysoserial-CommonCollections2-5
+title: ysoserial-CommonCollections2-7
 categories:
  - ysoserial
 tags:
@@ -7,7 +7,7 @@ tags:
 - 反序列化
 ---
 
-ysoserial-CommonCollections2-5利用链分析
+ysoserial-CommonCollections2-7利用链分析
 
 # CommonCollections1-7条件限制
 
@@ -273,6 +273,126 @@ private void readObject(ObjectInputStream ois) throws IOException, ClassNotFound
 ```
 
 这里调用了`TiedMapEntry.toString()`，进一步调用了`getValue`，最后到了`LazyMap.get()`，之后就和CC1一样了
+
+# CC-6
+
+## 利用链
+
+```java
+/*
+	Gadget chain:
+	    java.io.ObjectInputStream.readObject()
+            java.util.HashSet.readObject()
+                java.util.HashMap.put()
+                java.util.HashMap.hash()
+                    org.apache.commons.collections.keyvalue.TiedMapEntry.hashCode()
+                    org.apache.commons.collections.keyvalue.TiedMapEntry.getValue()
+                        org.apache.commons.collections.map.LazyMap.get()
+                            org.apache.commons.collections.functors.ChainedTransformer.transform()
+                            org.apache.commons.collections.functors.InvokerTransformer.transform()
+                            java.lang.reflect.Method.invoke()
+                                java.lang.Runtime.exec()
+
+    by @matthias_kaiser
+*/
+```
+
+### HashSet
+
+`HashSet.readObject()`
+
+```java
+private void readObject(java.io.ObjectInputStream s)
+    throws java.io.IOException, ClassNotFoundException {
+    // Read in any hidden serialization magic
+    s.defaultReadObject();
+
+    // Read in HashMap capacity and load factor and create backing HashMap
+    int capacity = s.readInt();
+    float loadFactor = s.readFloat();
+    map = (((HashSet)this) instanceof LinkedHashSet ?
+           new LinkedHashMap<E,Object>(capacity, loadFactor) :
+           new HashMap<E,Object>(capacity, loadFactor));
+
+    // Read in size
+    int size = s.readInt();
+
+    // Read in all elements in the proper order.
+    for (int i=0; i<size; i++) {
+        E e = (E) s.readObject();
+        map.put(e, PRESENT);
+    }
+}
+```
+
+这边`map.put(e, PRESENT);`往后调用了`e.hashcode()`，这里通过设置`hashset`的`key`，来使`e`为`TiedMapEntry`对象
+
+```java
+    public int hashCode() {
+        Object value = this.getValue();
+        return (this.getKey() == null ? 0 : this.getKey().hashCode()) ^ (value == null ? 0 : value.hashCode());
+    }
+
+    public Object getValue() {
+        return this.map.get(this.key);
+    }
+```
+
+把`this.map`设置为`LazyMap`，后面就和cc-1一样了
+
+# CC-7
+
+## 利用链
+
+```java
+/*
+    Payload method chain:
+
+    java.util.Hashtable.readObject
+    java.util.Hashtable.reconstitutionPut
+    org.apache.commons.collections.map.AbstractMapDecorator.equals
+    java.util.AbstractMap.equals
+    org.apache.commons.collections.map.LazyMap.get
+    org.apache.commons.collections.functors.ChainedTransformer.transform
+    org.apache.commons.collections.functors.InvokerTransformer.transform
+    java.lang.reflect.Method.invoke
+    sun.reflect.DelegatingMethodAccessorImpl.invoke
+    sun.reflect.NativeMethodAccessorImpl.invoke
+    sun.reflect.NativeMethodAccessorImpl.invoke0
+    java.lang.Runtime.exec
+*/
+```
+
+### Hashtable
+
+```java
+private void reconstitutionPut(Entry<?,?>[] tab, K key, V value)
+    throws StreamCorruptedException
+{
+    if (value == null) {
+        throw new java.io.StreamCorruptedException();
+    }
+    // Makes sure the key is not already in the hashtable.
+    // This should not happen in deserialized version.
+    int hash = key.hashCode();
+    int index = (hash & 0x7FFFFFFF) % tab.length;
+    for (Entry<?,?> e = tab[index] ; e != null ; e = e.next) {
+        if ((e.hash == hash) && e.key.equals(key)) {
+            throw new java.io.StreamCorruptedException();
+        }
+    }
+    // Creates the new entry.
+    @SuppressWarnings("unchecked")
+        Entry<K,V> e = (Entry<K,V>)tab[index];
+    tab[index] = new Entry<>(hash, key, value, e);
+    count++;
+}
+```
+
+`e.key.equals(key)`这里可以把`e.key`设置为`LazyMap`从而调用`LazyMap.get`
+
+要注意的是要进入段代码，需要`Hashtable`中有一个以上的元素，，因为在第一次进入`reconstitutionPut`时，`tab`为空，在第一次调用的结尾`tab`将会被赋值，第二次进入`reconstitutionPut`时就可以调用`e.key.equals(key)`
+
 
 # 参考
 
